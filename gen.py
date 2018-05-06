@@ -7,6 +7,7 @@ from PIL import Image
 from keras import backend as K
 from keras.applications import inception_v3
 from keras.preprocessing import image
+from utils import to_model_image
 from geneticalgorithm.model import Model
 from geneticalgorithm.crossover import CrossoverLayer
 import geneticalgorithm.crossoverfunctions
@@ -15,7 +16,7 @@ import geneticalgorithm.mutationfunctions
 from geneticalgorithm.elitism import ElitismLayer
 from geneticalgorithm.selectionfunctions import tournament_generator, repeat
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
-from mysubcribers import Printer
+from mysubcribers import Printer, ServerHook
 
 
 POPULATIONSIZE = 100
@@ -28,15 +29,6 @@ ELITISM = 0
 CLASSESTOAVOID = 5
 FINISH = 0.7
 OUTPUTFILE = "hacked-image.png"
-
-
-
-def to_model_image(image):
-    img = np.copy(image)
-    img /= 255.0
-    img -= 0.5
-    img *= 2.0
-    return img
 
 
 def fitness_change_original_generator(model_input_layer, model_output_layer, original_image, original_classes):
@@ -85,17 +77,6 @@ def args(p=None):
         args = parser.parse_args()
         return args
 
-
-def predict_classes(model, image, top_count=5):
-    input_image_extended = np.expand_dims(image, axis=0)
-    predictions = model.predict(input_image_extended)
-    predicted_classes = inception_v3.decode_predictions(predictions, top=top_count)
-    results = []
-    for i in range(top_count):
-        _, name, confidence = predicted_classes[0][i]
-        results.append({'className': name, 'probability': float(confidence)})
-    return results
-
 def build_genetic_model(inception_input, inception_output, original_image, original_classes,
         population_size, tournament_size, elitism_count, mutation_rate, mutation_variance, max_change_below, max_change_above):
     elitism = ElitismLayer(None, elitism_count) if elitism_count > 0 else None
@@ -136,8 +117,9 @@ def run(args, hook=None):
     
     
     initial_population = UniformClippedPopulationGenerator(input_image, max_change, 0, 255).generate(population_size)
+    subscribers = [Printer() if hook is None else ServerHook(hook, model)]
 
-    population, fitness = genetic_alg.run(initial_population, stopping_when_more_likely_by(finish), subscribers=[Printer()])  
+    population, fitness = genetic_alg.run(initial_population, stopping_when_more_likely_by(finish), subscribers)  
 
     hacked_image = max(list(zip(population, fitness)), key=lambda p: p[1])[0]
     # Save the hacked image!
@@ -153,70 +135,6 @@ def run(args, hook=None):
     print(predicted_classes[0])
     _, name, confidence = predicted_classes[0][0]
     print("This is a {} with {:.4}% confidence!".format(name, confidence * 100))
-
-    # prob = 0
-
-    # population = create_initial_population(input_image, population_size, 1, max_change, max_change_below,
-    #                                        max_change_above)
-    # generation = 1
-    # try:
-    #     while prob <= 1.0 + finish:  # We want to end when another class is more likely than orignal
-    #         scaled_population = to_model_image(population)
-    #         probs = grab_cost_from_model([scaled_population, 0])[0]
-
-    #         costs, prob, objectiveFunction = cost_change_original(population, probs, input_image, original_classes,
-    #                                                               CHANGEEXPONENT)
-
-    #         if elitism > 0:
-    #             elite = [p[0] for p in nlargest(elitism, list(zip(population, costs)), key=lambda p: p[1])]
-    #         population = [mutate(crossover(*get_parents(population, costs, tournament_generator(TOURNAMENTSIZE))),
-    #                              mutation_rate, mutation_variance, max_change_below, max_change_above)
-    #                       for i in range(len(population) - elitism)]
-    #         if elitism > 0:
-    #             population = np.concatenate([elite, population])
-
-    #         # calculate stats
-    #         best = float(np.max(objectiveFunction))
-    #         mean = float(np.mean(objectiveFunction))
-    #         median = float(np.median(objectiveFunction))
-    #         worst = float(np.min(objectiveFunction))
-    #         bestSpecimen = population[np.argmax(objectiveFunction)]
-    #         predictedClasses = predict_classes(model, to_model_image(bestSpecimen))
-    #         if hook is not None:
-    #             print('calling hook')
-    #             hook({
-    #                 'objectiveFunction': {
-    #                     'best': best,
-    #                     'worst': worst,
-    #                     'mean': mean,
-    #                     'median': median
-    #                 },
-    #                 'generation': generation,
-    #                 'bestSpecimen': {
-    #                     'data': Image.fromarray(bestSpecimen.astype(np.uint8)),
-    #                     'predictions': predictedClasses
-    #                 }
-    #             })
-
-    #         generation += 1
-    # except KeyboardInterrupt:
-    #     pass
-
-    # hacked_image = max(list(zip(population, costs)), key=lambda p: p[1])[0]
-
-    # # Save the hacked image!
-    # im = Image.fromarray(hacked_image.astype(np.uint8))
-    # im.save(out)
-
-    # hacked_image = to_model_image(hacked_image)
-    # hacked_image_extended = np.expand_dims(hacked_image, axis=0)
-
-    # predictions = model.predict(hacked_image_extended)
-
-    # predicted_classes = inception_v3.decode_predictions(predictions)
-    # print(predicted_classes[0])
-    # _, name, confidence = predicted_classes[0][0]
-    # print("This is a {} with {:.4}% confidence!".format(name, confidence * 100))
 
 
 if __name__ == '__main__':
