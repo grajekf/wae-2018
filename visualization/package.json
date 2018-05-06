@@ -1,9 +1,9 @@
 {
   "name": "typescript-react-redux-boilerplate",
   "version": "1.0.0",
-  "description": "Boilerplate code for project using Typescript, React and Redux",
-  "repository": "https://github.com/mgrzeszczak/typescript-react-redux-boilerplate",
-  "author": "Maciej Grzeszczak",
+  "description": "WAE genetic algorithm visualization",
+  "repository": "https://github.com/grajekf/wae-2018",
+  "author": "Maciej Grzeszczak & Filip Grajek",
   "license": "MIT",
   "scripts": {
     "build": "webpack --config webpack.config.js",
