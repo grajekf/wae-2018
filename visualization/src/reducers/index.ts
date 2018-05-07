@@ -26,6 +26,7 @@ export interface VisualizationData {
         image: string;
         predictions: { className: string, probability: number }[];
     };
+    population: { x: number, y: number }[];
 }
 
 const rootReducer = combineReducers(
@@ -60,6 +61,7 @@ export function visualizationDataReducer(state: VisualizationData = {
         image: "",
         predictions: []
     },
+    population: []
 }, action: any): VisualizationData {
     console.log(action);
     switch (action.type) {

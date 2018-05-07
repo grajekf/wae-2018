@@ -79,7 +79,8 @@ async def notifier(publisher, queue):
             'bestSpecimenData': {
                 'image': img_base64.decode('utf-8'),
                 'predictions': item['bestSpecimen']['predictions']
-            }
+            },
+            'population': item['population']
         })
         await publisher.notify(payload)
 

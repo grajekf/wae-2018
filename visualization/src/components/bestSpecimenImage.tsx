@@ -12,8 +12,8 @@ class BestSpecimenImage extends Component<any, any> {
     }
 
     render() {
-        return <div>
-            <img src={`data:image/png;base64, ${this.props.image}`} />
+        return <div style={{ width: "100%", margin: "0 auto" }}>
+            <img style={{ height: "100%", margin: "0 auto" }} src={`data:image/png;base64, ${this.props.image}`} />
         </div>;
     }
 

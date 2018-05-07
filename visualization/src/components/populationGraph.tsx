@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { Scatter } from "react-chartjs-2";
 import { AppState, VisualizationData, ConnectionState } from "../reducers";
+const Plot = require("react-plotly.js");
 
 class PopulationGraph extends Component<any, any> {
 
@@ -14,29 +15,43 @@ class PopulationGraph extends Component<any, any> {
 
     render() {
         const data = {
-            labels: this.props.labels,
             datasets: [
                 {
-                    label: "Mean",
-                    fill: false,
                     borderColor: "red",
-                    data: this.props.mean
+                    data: this.props.data
                 }
             ]
         };
 
-        return <div>
-            <Scatter data={data} options={{}} />
+        return <div style={{ margin: "0 auto", display: "flex" }}>
+            <Scatter data={data} options={{
+                legend: {
+                    display: false
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            min: -1000,
+                            max: 1000
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            min: -1000,
+                            max: 1000
+                        }
+                    }]
+                }
+
+            }} />
         </div>;
     }
 
 }
 
 function mapStateToProps(appState: AppState) {
-    const labels = [...Array(appState.visualizationData.generation).keys()].map(k => k + 1);
     return {
-        labels: labels,
-        ...appState.visualizationData.objectiveFunctionData
+        data: appState.visualizationData.population
     };
 }
 

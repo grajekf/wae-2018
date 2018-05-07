@@ -62,22 +62,6 @@ class ObjectiveFunctionGraph extends Component<any, any> {
                             }
                         }
                     ]
-                },
-                pan: {
-                    // Boolean to enable panning
-                    enabled: true,
-
-                    // Panning directions. Remove the appropriate direction to disable
-                    // Eg. 'y' would only allow panning in the y direction
-                    mode: "xy"
-                },
-                zoom: {
-                    // Boolean to enable zooming
-                    enabled: true,
-
-                    // Enable drag-to-zoom behavior
-                    drag: true,
-                    mode: "xy"
                 }
             }} />
         </div>;
