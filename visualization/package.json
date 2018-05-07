@@ -10,12 +10,9 @@
     "dev": "webpack-dev-server"
   },
   "dependencies": {
-    "@types/material-ui": "^0.21.2",
     "axios": "^0.17.1",
     "chart.js": "^2.7.2",
-    "chartjs-plugin-zoom": "^0.6.3",
-    "hammerjs": "^2.0.8",
-    "material-ui": "^0.20.0",
+    "material-ui": "^1.0.0-beta.45",
     "react": "^16.2.0",
     "react-chartjs-2": "^2.7.2",
     "react-dom": "^16.2.0",

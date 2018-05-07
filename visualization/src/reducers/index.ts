@@ -7,7 +7,10 @@ export interface AppState {
 }
 
 export interface ConnectionState {
-    socket: WebSocket | null;
+    // socket: WebSocket | null;
+    connected: boolean;
+    connecting: boolean;
+    connectionFailure: boolean;
 }
 
 export interface VisualizationData {
@@ -32,8 +35,13 @@ const rootReducer = combineReducers(
     }
 );
 
-export function connectionStateReducer(state: ConnectionState = { socket: null }, action: any): ConnectionState {
+export function connectionStateReducer(state: ConnectionState = { connected: false, connecting: false, connectionFailure: false }, action: any): ConnectionState {
+
     switch (action.type) {
+        case ActionType.CONNECTION:
+            console.log("RECEIVED ACTION");
+            console.log(action.payload);
+            return action.payload;
         default:
             return state;
     }

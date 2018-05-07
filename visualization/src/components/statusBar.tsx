@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { AppState, VisualizationData, ConnectionState } from "../reducers";
-import RaisedButton from "material-ui/RaisedButton";
 import { updateData } from "../actions";
 
 class StatusBar extends Component<any, any> {

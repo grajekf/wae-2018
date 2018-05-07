@@ -15,12 +15,12 @@ const store = createStoreWithMiddleware(reducers);
 export default store;
 
 ReactDOM.render(
-  <MuiThemeProvider>
-    <Provider store={store}>
-      <HashRouter>
-        <Root />
-      </HashRouter>
-    </Provider>
-  </MuiThemeProvider>,
+  // <MuiThemeProvider>
+  <Provider store={store}>
+    <HashRouter>
+      <Root />
+    </HashRouter>
+  </Provider>,
+  // </MuiThemeProvider>,
   document.getElementById(containerId)
 );

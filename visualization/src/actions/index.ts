@@ -1,9 +1,9 @@
-import { VisualizationData } from "../reducers";
+import { VisualizationData, ConnectionState } from "../reducers";
 import { Dispatch } from "redux";
 import store from "..";
 export enum ActionType {
     UPDATE,
-    CONNECT
+    CONNECTION
 }
 
 export function updateData(data: VisualizationData): any {
@@ -16,29 +16,10 @@ export function updateData(data: VisualizationData): any {
     };
 }
 
-export function connect(updateState: (data: VisualizationData) => void): any {
-    const promise = new Promise<any>((resolve, reject) => {
-        const socket = new WebSocket("ws://localhost:3001");
-        socket.onerror = err => {
-            console.error(err);
-            reject(err);
-        };
-        socket.onmessage = msg => {
-            let data = JSON.parse(msg.data) as VisualizationData;
-            store.dispatch(updateData(data));
-        };
-        socket.onopen = event => {
-            console.log("connection established");
-            console.log(event);
-            resolve(event);
-        };
-        socket.onclose = event => {
-            console.log("connection closed");
-            console.log(event);
-        };
-    });
+export function updateConnection(data: ConnectionState): any {
     return {
-        type: ActionType.CONNECT,
-        payload: promise
+        type: ActionType.CONNECTION,
+        payload: data
     };
 }
+
