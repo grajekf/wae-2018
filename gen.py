@@ -16,6 +16,7 @@ import geneticalgorithm.mutationfunctions
 from geneticalgorithm.elitism import ElitismLayer
 from geneticalgorithm.selectionfunctions import tournament_generator, repeat
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
+from geneticalgorithm.stopconditions import budget_stopcondition_generator
 from mysubcribers import Printer, ServerHook
 
 
@@ -47,11 +48,19 @@ def fitness_change_original_generator(model_input_layer, model_output_layer, ori
 
 
 def stopping_when_more_likely_by(stopping_value):
-    def stopping(population, fitness):
+    def stopping(population, fitness, **kwargs):
         return max(fitness) >= 1 + stopping_value
     return stopping
 
-
+def stop_condition(finish, budget):
+    value_condition = stopping_when_more_likely_by(finish)
+    if budget is None:
+        return value_condition
+    budget_condition = budget_stopcondition_generator(budget)
+    def inner(population, fitness, **kwargs):
+        return budget_condition(population, fitness, **kwargs) or value_condition(population, fitness, **kwargs)
+    return inner
+    
 
 def args(p=None):
     parser = argparse.ArgumentParser() if p is None else p
@@ -72,6 +81,7 @@ def args(p=None):
                         help='Finish when max(other class) - max(classes to avoid) is bigger than this value',
                         type=float)
     parser.add_argument('-ts', metavar='TOURNAMENT_SIZE', default=TOURNAMENTSIZE, help='Size of tournament in selection', type=int)
+    parser.add_argument('-b', metavar='BUDGET', help='Number of fitness function evaluations the algorithm can use', type=int)
 
     if p is None:
         args = parser.parse_args()
@@ -91,7 +101,7 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
 
 
 def run(args, hook=None):
-    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, tournament_size = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.ts
+    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, tournament_size, budget = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.ts, args.b
 
     model = inception_v3.InceptionV3()
     model_input_layer = model.layers[0].input
@@ -119,7 +129,7 @@ def run(args, hook=None):
     initial_population = UniformClippedPopulationGenerator(input_image, max_change, 0, 255).generate(population_size)
     subscribers = [Printer() if hook is None else ServerHook(hook, model)]
 
-    population, fitness = genetic_alg.run(initial_population, stopping_when_more_likely_by(finish), subscribers)  
+    population, fitness = genetic_alg.run(initial_population, stop_condition(finish, budget), subscribers)  
 
     hacked_image = max(list(zip(population, fitness)), key=lambda p: p[1])[0]
     # Save the hacked image!
@@ -138,4 +148,4 @@ def run(args, hook=None):
 
 
 if __name__ == '__main__':
-    run(args(), lambda data: print(data))
+    run(args(), None)
