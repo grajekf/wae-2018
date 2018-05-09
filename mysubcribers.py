@@ -7,9 +7,9 @@ from sklearn.preprocessing import normalize
 
 
 class Printer(Subscriber):
-    def notify(self, generation, population, fitness):
+    def notify(self, generation, population, fitness, **kwargs):
         print(
-            f"Generation: {generation}, Min fitness: {np.min(fitness)}, Avg fitness: {np.average(fitness)}, Max fitness: {np.max(fitness)}")
+            f"Generation: {generation}, Min fitness: {np.min(fitness)}, Avg fitness: {np.average(fitness)}, Max fitness: {np.max(fitness)}, Fitness function uses: {kwargs['current_uses']}")
 
 
 class ServerHook(Subscriber):
@@ -18,7 +18,7 @@ class ServerHook(Subscriber):
         self.hook = hook
         self.model = model
 
-    def notify(self, generation, population, fitness):
+    def notify(self, generation, population, fitness, **kwargs):
         pca = PCA(n_components=2)
         flattened_population = list(map(lambda x: x.flatten(), list(population)))
         transformed_population = list(map(lambda x: {'x' : float(x[0]), 'y' : float(x[1]) }, pca.fit_transform(flattened_population)))
