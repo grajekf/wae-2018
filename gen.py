@@ -17,7 +17,7 @@ from geneticalgorithm.elitism import ElitismLayer
 from geneticalgorithm.selectionfunctions import tournament_generator, repeat
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
 from geneticalgorithm.stopconditions import budget_stopcondition_generator
-from mysubcribers import Printer, ServerHook
+from mysubcribers import Printer, ServerHook, Logger
 
 
 POPULATIONSIZE = 100
@@ -80,6 +80,7 @@ def args(p=None):
     parser.add_argument('-f', metavar='FINISHCONDITION', default=FINISH,
                         help='Finish when max(other class) - max(classes to avoid) is bigger than this value',
                         type=float)
+    parser.add_argument('-l', metavar='LOG_FILE', default=None, help='Log file path', type=str)
     parser.add_argument('-ts', metavar='TOURNAMENT_SIZE', default=TOURNAMENTSIZE, help='Size of tournament in selection', type=int)
     parser.add_argument('-b', metavar='BUDGET', help='Number of fitness function evaluations the algorithm can use', type=int)
 
@@ -101,7 +102,7 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
 
 
 def run(args, hook=None):
-    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, tournament_size, budget = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.ts, args.b
+    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b
 
     model = inception_v3.InceptionV3()
     model_input_layer = model.layers[0].input
@@ -128,6 +129,8 @@ def run(args, hook=None):
     
     initial_population = UniformClippedPopulationGenerator(input_image, max_change, 0, 255).generate(population_size)
     subscribers = [Printer() if hook is None else ServerHook(hook, model)]
+    if log_file is not None:
+        subscribers.append(Logger(log_file, model))
 
     population, fitness = genetic_alg.run(initial_population, stop_condition(finish, budget), subscribers)  
 
