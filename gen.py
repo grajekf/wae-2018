@@ -10,11 +10,11 @@ from keras.preprocessing import image
 from utils import to_model_image
 from geneticalgorithm.model import Model
 from geneticalgorithm.crossover import CrossoverLayer
-import geneticalgorithm.crossoverfunctions
+from geneticalgorithm.crossoverfunctions import OnePointCrossover
 from geneticalgorithm.mutation import MutationLayer
-import geneticalgorithm.mutationfunctions
+from geneticalgorithm.mutationfunctions import ClippedUniformIntegerMutation
 from geneticalgorithm.elitism import ElitismLayer
-from geneticalgorithm.selectionfunctions import tournament_generator, repeat
+from geneticalgorithm.selectionfunctions import TournamentSelection
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
 from geneticalgorithm.stopconditions import budget_stopcondition_generator
 from mysubcribers import Printer, ServerHook, Logger
@@ -92,12 +92,12 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
         population_size, tournament_size, elitism_count, mutation_rate, mutation_variance, max_change_below, max_change_above):
     elitism = ElitismLayer(None, elitism_count) if elitism_count > 0 else None
     crossover = CrossoverLayer(None, 
-        geneticalgorithm.crossoverfunctions.one_point_crossover, 
-        repeat(tournament_generator(tournament_size)),
+        OnePointCrossover(), 
+        TournamentSelection(tournament_size),
         population_size - elitism_count)
     first_layer = [crossover, elitism] if elitism is not None else crossover
     mutation = MutationLayer(first_layer, 
-        geneticalgorithm.mutationfunctions.clipped_uniform_integer_mutation_generator(mutation_rate, mutation_variance, max_change_below, max_change_above))
+        ClippedUniformIntegerMutation(mutation_rate, mutation_variance, max_change_below, max_change_above))
     return Model(mutation, fitness_change_original_generator(inception_input, inception_output, original_image, original_classes))
 
 
@@ -130,7 +130,7 @@ def run(args, hook=None):
     initial_population = UniformClippedPopulationGenerator(input_image, max_change, 0, 255).generate(population_size)
     subscribers = [Printer() if hook is None else ServerHook(hook, model)]
     if log_file is not None:
-        subscribers.append(Logger(log_file, model))
+        subscribers.append(Logger(log_file, model, classes_to_avoid=classes_to_avoid, max_change=max_change))
 
     population, fitness = genetic_alg.run(initial_population, stop_condition(finish, budget), subscribers)  
 

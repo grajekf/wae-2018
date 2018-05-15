@@ -21,7 +21,7 @@ class Model():
                 population = self.output_layer.forward(population, fitness)
                 fitness = self.fitness_function(population)
                 for s in subscribers:
-                    s.notify(self.generation, population, fitness, current_uses=self.current_uses)
+                    s.notify(self.generation, population, fitness, current_fitness_uses=self.current_uses, layer_parameters=self.output_layer.getparameters())
                 self.generation = self.generation + 1
         except KeyboardInterrupt:
             pass  
