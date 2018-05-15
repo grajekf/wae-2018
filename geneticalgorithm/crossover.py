@@ -4,8 +4,8 @@ import numpy as np
 
 class CrossoverLayer(Layer):
 
-    def __init__(self, inputs, crossover_function, selection_function, children_count):
-        super(CrossoverLayer, self).__init__(inputs)
+    def __init__(self, inputs, crossover_function, selection_function, children_count, name = None, save_inputs=False):
+        super(CrossoverLayer, self).__init__(inputs, name, save_inputs)
         self.crossover_function = crossover_function
         self.selection_function = selection_function
         self.children_count = children_count

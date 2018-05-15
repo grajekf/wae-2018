@@ -3,8 +3,8 @@ import numpy as np
 
 class MutationLayer(Layer):
 
-    def __init__(self, inputs, mutation_function):
-        super(MutationLayer, self).__init__(inputs)
+    def __init__(self, inputs, mutation_function, name = None, save_inputs=False):
+        super(MutationLayer, self).__init__(inputs, name, save_inputs)
         self.mutation_function = mutation_function
 
     def _dowork(self, population, fitness):

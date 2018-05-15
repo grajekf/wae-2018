@@ -17,6 +17,7 @@ from geneticalgorithm.elitism import ElitismLayer
 from geneticalgorithm.selectionfunctions import TournamentSelection
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
 from geneticalgorithm.stopconditions import budget_stopcondition_generator
+from geneticalgorithm.onefifthmutationadjuster import OneFifthMutationAdjuster
 from mysubcribers import Printer, ServerHook, Logger
 
 
@@ -29,6 +30,7 @@ CHANGEEXPONENT = 0
 ELITISM = 0
 CLASSESTOAVOID = 5
 FINISH = 0.7
+ALPHA = 1
 OUTPUTFILE = "hacked-image.png"
 
 
@@ -39,7 +41,6 @@ def fitness_change_original_generator(model_input_layer, model_output_layer, ori
         class_probabilities = grab_cost_from_model([to_model_image(population), 0])[0]
         probs_original = np.array([class_probabilities[:, i] for i in range(len(class_probabilities[0])) if i in original_classes])
         probs_other = np.array([class_probabilities[:, i] for i in range(len(class_probabilities[0])) if i not in original_classes])
-        # print(class_probabilities)
         max_other_classes = np.array([max(p) for p in probs_other.T])  # highest probability other then original classes
         max_original_classes = np.array([max(p) for p in probs_original.T]) # highest probability of original classes
         fitness = max_other_classes - max_original_classes + 1.0
@@ -83,13 +84,15 @@ def args(p=None):
     parser.add_argument('-l', metavar='LOG_FILE', default=None, help='Log file path', type=str)
     parser.add_argument('-ts', metavar='TOURNAMENT_SIZE', default=TOURNAMENTSIZE, help='Size of tournament in selection', type=int)
     parser.add_argument('-b', metavar='BUDGET', help='Number of fitness function evaluations the algorithm can use', type=int)
+    parser.add_argument('-a', metavar='ALPHA', default=ALPHA, help='Factor used to adjust mutation variance according to the one fifth rule',
+                        type=float)
 
     if p is None:
         args = parser.parse_args()
         return args
 
 def build_genetic_model(inception_input, inception_output, original_image, original_classes,
-        population_size, tournament_size, elitism_count, mutation_rate, mutation_variance, max_change_below, max_change_above):
+        population_size, tournament_size, elitism_count, mutation_rate, mutation_variance, max_change_below, max_change_above, alpha):
     elitism = ElitismLayer(None, elitism_count) if elitism_count > 0 else None
     crossover = CrossoverLayer(None, 
         OnePointCrossover(), 
@@ -97,12 +100,14 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
         population_size - elitism_count)
     first_layer = [crossover, elitism] if elitism is not None else crossover
     mutation = MutationLayer(first_layer, 
-        ClippedUniformIntegerMutation(mutation_rate, mutation_variance, max_change_below, max_change_above))
-    return Model(mutation, fitness_change_original_generator(inception_input, inception_output, original_image, original_classes))
+        ClippedUniformIntegerMutation(mutation_rate, mutation_variance, max_change_below, max_change_above),
+        "mutation", True)
+    return Model(mutation, fitness_change_original_generator(inception_input, inception_output, original_image, original_classes),
+        [OneFifthMutationAdjuster(alpha)])
 
 
 def run(args, hook=None):
-    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b
+    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget, alpha = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b, args.a
 
     model = inception_v3.InceptionV3()
     model_input_layer = model.layers[0].input
@@ -124,7 +129,7 @@ def run(args, hook=None):
     original_classes = predictions[0][-classes_to_avoid:]
 
     genetic_alg = build_genetic_model(model_input_layer, model_output_layer, input_image, original_classes, 
-        population_size, tournament_size, elitism, mutation_rate, mutation_variance, max_change_below, max_change_above)
+        population_size, tournament_size, elitism, mutation_rate, mutation_variance, max_change_below, max_change_above, alpha)
     
     
     initial_population = UniformClippedPopulationGenerator(input_image, max_change, 0, 255).generate(population_size)

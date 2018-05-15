@@ -6,13 +6,16 @@ from geneticalgorithm.parametrisable import Parametrisible
 from functools import reduce
 
 class Layer(Parametrisible, ABC):
-    def __init__(self, inputs):
+    def __init__(self, inputs, name = None, save_inputs=False):
         if inputs is None:
             inputs = []
         if not isinstance(inputs, collections.Iterable):
             inputs = [inputs]
         self.inputs = inputs
         self.cached_population = None
+        self.name = name if name is not None else type(self).__name__
+        self.save_inputs = save_inputs
+        self.custom_params = {}
     
 
     def forward(self, population, fitness):
@@ -23,6 +26,8 @@ class Layer(Parametrisible, ABC):
             for i in self.inputs:
                 new_population.extend(i.forward(population, fitness))
             population = np.array(new_population)
+        if self.save_inputs:
+            self.custom_params[self.name+ "_inputs"] = population
         population = self._dowork(population, fitness)
         self.cached_population = population
         return population
@@ -31,7 +36,7 @@ class Layer(Parametrisible, ABC):
         pass
 
     def getparameters(self):
-        params = {}
+        params = self.custom_params
         for i in self.inputs:
             params = {**params, **i.getparameters()}
         params = {**params, **self._getparameters()}
