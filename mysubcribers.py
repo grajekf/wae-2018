@@ -10,7 +10,7 @@ from sklearn.preprocessing import normalize
 class Printer(Subscriber):
     def notify(self, generation, population, fitness, **kwargs):
         print(
-            f"Generation: {generation}, Min fitness: {np.min(fitness)}, Avg fitness: {np.average(fitness)}, Max fitness: {np.max(fitness)}, Fitness function uses: {kwargs['current_uses']}")
+            f"Generation: {generation}, Min fitness: {np.min(fitness)}, Avg fitness: {np.average(fitness)}, Max fitness: {np.max(fitness)}, Fitness function uses: {kwargs['current_fitness_uses']}")
 
 class Logger(Subscriber):
     def __init__(self, path, model):
@@ -22,16 +22,17 @@ class Logger(Subscriber):
         mean = float(np.mean(fitness))
         median = float(np.median(fitness))
         worst = float(np.min(fitness))
+        population_size = len(population)
         mean_speciman = np.average(population, axis=0)
         std_population = np.average(np.sqrt(np.sum(np.square(population - mean_speciman), axis=1)))
         bestSpecimen = population[np.argmax(fitness)]
         predictedClasses = predict_classes(self.model, to_model_image(bestSpecimen))
         
-        df = pd.DataFrame(columns=["Generation", "Fitness function evaluations", "Best fitness", "Average fitness", "Median fitness", "Worst Fitness", "Std Population", 
+        df = pd.DataFrame(columns=["Generation", "Fitness function uses", "Best fitness", "Average fitness", "Median fitness", "Worst Fitness", "Population size", "Std Population", 
         "Predicted class 1", "Probability 1", "Predicted class 2", "Probability 2", "Predicted class 3", "Probability 3", "Predicted class 4", "Probability 4",
-        "Predicted class 5", "Probability 5",])
-        df.loc[len(df)] = [generation, kwargs['current_uses'], best, mean, median, worst, std_population, 
-            *[a for b in predictedClasses for _,a in b.items()]]
+        "Predicted class 5", "Probability 5", *kwargs["layer_parameters"].keys()])
+        df.loc[len(df)] = [generation, kwargs["current_fitness_uses"], best, mean, median, worst, population_size,std_population, 
+            *[a for b in predictedClasses for _,a in b.items()], *kwargs["layer_parameters"].values()]
         with open(self.path, 'a') as f:
             df.to_csv(f, index=False, header=f.tell()==0)
 
