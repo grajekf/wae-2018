@@ -13,9 +13,10 @@ class Printer(Subscriber):
             f"Generation: {generation}, Min fitness: {np.min(fitness)}, Avg fitness: {np.average(fitness)}, Max fitness: {np.max(fitness)}, Fitness function uses: {kwargs['current_fitness_uses']}")
 
 class Logger(Subscriber):
-    def __init__(self, path, model):
+    def __init__(self, path, model, **kwargs):
         self.path = path
         self.model = model
+        self.static_parameters = kwargs
     
     def notify(self, generation, population, fitness, **kwargs):
         best = float(np.max(fitness))
@@ -30,9 +31,9 @@ class Logger(Subscriber):
         
         df = pd.DataFrame(columns=["Generation", "Fitness function uses", "Best fitness", "Average fitness", "Median fitness", "Worst Fitness", "Population size", "Std Population", 
         "Predicted class 1", "Probability 1", "Predicted class 2", "Probability 2", "Predicted class 3", "Probability 3", "Predicted class 4", "Probability 4",
-        "Predicted class 5", "Probability 5", *kwargs["layer_parameters"].keys()])
+        "Predicted class 5", "Probability 5", *kwargs["layer_parameters"].keys(), *self.static_parameters.keys()])
         df.loc[len(df)] = [generation, kwargs["current_fitness_uses"], best, mean, median, worst, population_size,std_population, 
-            *[a for b in predictedClasses for _,a in b.items()], *kwargs["layer_parameters"].values()]
+            *[a for b in predictedClasses for _,a in b.items()], *kwargs["layer_parameters"].values(), *self.static_parameters.values()]
         with open(self.path, 'a') as f:
             df.to_csv(f, index=False, header=f.tell()==0)
 
