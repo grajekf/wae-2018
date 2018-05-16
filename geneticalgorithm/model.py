@@ -1,8 +1,9 @@
 
 class Model():
-    def __init__(self, output_layer, fitness_function):
+    def __init__(self, output_layer, fitness_function, parameter_adjusters = []):
         self.output_layer = output_layer
         self.fitness_function = self.__wrap_fitness(fitness_function)
+        self.parameter_adjusters = parameter_adjusters
 
     def __wrap_fitness(self, fitness_function):
         def inner(population):
@@ -22,6 +23,8 @@ class Model():
                 fitness = self.fitness_function(population)
                 for s in subscribers:
                     s.notify(self.generation, population, fitness, current_fitness_uses=self.current_uses, layer_parameters=self.output_layer.getparameters())
+                for parameter_adjuster in self.parameter_adjusters:
+                    parameter_adjuster.adjust(self.output_layer, population, fitness, self.generation, fitness_function=self.fitness_function)
                 self.generation = self.generation + 1
         except KeyboardInterrupt:
             pass  

@@ -2,8 +2,8 @@ from geneticalgorithm.layer import Layer
 from heapq import nlargest
 
 class ElitismLayer(Layer):
-    def __init__(self, inputs, elitism_count):
-        super(ElitismLayer, self).__init__(inputs)
+    def __init__(self, inputs, elitism_count, name = None, save_inputs=False):
+        super(ElitismLayer, self).__init__(inputs, name, save_inputs)
         self.elitism_count = elitism_count
     
     def _dowork(self, population, costs):
