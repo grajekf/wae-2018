@@ -90,7 +90,7 @@ def args(p=None):
     parser.add_argument('-l', metavar='LOG_FILE', default=None, help='Log file path', type=str)
     parser.add_argument('-ts', metavar='TOURNAMENT_SIZE', default=TOURNAMENTSIZE, help='Size of tournament in selection', type=int)
     parser.add_argument('-b', metavar='BUDGET', help='Number of fitness function evaluations the algorithm can use', type=int)
-    parser.add_argument('-bs', metavar='BOUNDSTRATEGY', default=BOUNDSTRATEGY, help='Number of fitness function evaluations the algorithm can use', 
+    parser.add_argument('-bs', metavar='BOUNDSTRATEGY', default=BOUNDSTRATEGY, help='Strategy to use for chromosome outside of allowed range', 
                         type=str)
     # parser.add_argument('-a', metavar='ALPHA', default=ALPHA, help='Factor used to adjust mutation variance according to the one fifth rule',
     #                     type=float)
