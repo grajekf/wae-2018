@@ -43,7 +43,7 @@ class Layer(Parametrisible, ABC):
         return params
 
     def _getparameters(self):
-        pass
+        return {}
 
     def setparameter(self, key, value):
         changed = self._setparameter(key, value)
@@ -53,7 +53,7 @@ class Layer(Parametrisible, ABC):
 
 
     def _setparameter(self, key, value):
-        pass
+        return False
     
     def resetcache(self):
         self.cached_population = None

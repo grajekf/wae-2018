@@ -1,7 +1,14 @@
-
+import collections
+from geneticalgorithm.layer import Layer
 class Model():
-    def __init__(self, output_layer, fitness_function, parameter_adjusters = []):
-        self.output_layer = output_layer
+    class CollectLayer(Layer):
+
+        def _dowork(self, population, fitness):
+            return population
+
+
+    def __init__(self, output_layers, fitness_function, parameter_adjusters = []):
+        self.output_layer = Model.CollectLayer(output_layers)
         self.fitness_function = self.__wrap_fitness(fitness_function)
         self.parameter_adjusters = parameter_adjusters
 
@@ -17,7 +24,7 @@ class Model():
         population = initial_population
         fitness = self.fitness_function(population)
         try:
-            while not stopping_criterion(population, fitness, current_uses=self.current_uses):
+            while not stopping_criterion(population, fitness, current_uses=self.current_uses, generation=self.generation):
                 self.output_layer.resetcache()
                 population = self.output_layer.forward(population, fitness)
                 fitness = self.fitness_function(population)
