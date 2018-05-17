@@ -12,7 +12,6 @@ def patience_stopcondition_generator(patience):
         if max_fitness > stopconditon.best_fitness:
             stopconditon.best_fitness = max_fitness
             stopconditon.best_generation = generation
-        print(generation - stopconditon.best_generation)
         return generation - stopconditon.best_generation > patience
     
     stopconditon.best_fitness = 0.0
