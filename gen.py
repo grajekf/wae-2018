@@ -12,13 +12,18 @@ from geneticalgorithm.model import Model
 from geneticalgorithm.crossover import CrossoverLayer
 from geneticalgorithm.crossoverfunctions import OnePointCrossover
 from geneticalgorithm.mutation import MutationLayer
-from geneticalgorithm.mutationfunctions import ClippedUniformIntegerMutation
+from geneticalgorithm.mutationfunctions import UniformIntegerMutation
 from geneticalgorithm.elitism import ElitismLayer
 from geneticalgorithm.selectionfunctions import TournamentSelection
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
 from geneticalgorithm.stopconditions import budget_stopcondition_generator
 from geneticalgorithm.onefifthmutationadjuster import OneFifthMutationAdjuster
 from mysubcribers import Printer, ServerHook, Logger
+from geneticalgorithm.bounded.conservatism import Conservatism
+from geneticalgorithm.bounded.projection import Projection
+from geneticalgorithm.bounded.resampling import Resampling
+from geneticalgorithm.bounded.reinitialization import Reinitialization
+from geneticalgorithm.bounded.reflection import Reflection
 
 
 POPULATIONSIZE = 100
@@ -31,6 +36,7 @@ ELITISM = 0
 CLASSESTOAVOID = 5
 FINISH = 0.7
 ALPHA = 1
+BOUNDSTRATEGY = "projection"
 OUTPUTFILE = "hacked-image.png"
 
 
@@ -84,6 +90,8 @@ def args(p=None):
     parser.add_argument('-l', metavar='LOG_FILE', default=None, help='Log file path', type=str)
     parser.add_argument('-ts', metavar='TOURNAMENT_SIZE', default=TOURNAMENTSIZE, help='Size of tournament in selection', type=int)
     parser.add_argument('-b', metavar='BUDGET', help='Number of fitness function evaluations the algorithm can use', type=int)
+    parser.add_argument('-bs', metavar='BOUNDSTRATEGY', default=BOUNDSTRATEGY, help='Number of fitness function evaluations the algorithm can use', 
+                        type=str)
     # parser.add_argument('-a', metavar='ALPHA', default=ALPHA, help='Factor used to adjust mutation variance according to the one fifth rule',
     #                     type=float)
 
@@ -91,8 +99,22 @@ def args(p=None):
         args = parser.parse_args()
         return args
 
+def bound_strategy_from_arg(bound_strategy, mutation, lower, upper, generator):
+    if bound_strategy == "resampling":
+        return Resampling(mutation, lower, upper)
+    if bound_strategy == "conservatism":
+        return Conservatism(mutation, lower, upper)
+    if bound_strategy == "projection":
+        return Projection(mutation, lower, upper)
+    if bound_strategy == "reflection":
+        return Reflection(mutation, lower, upper)
+    if bound_strategy == "reinitialization":
+        return Reinitialization(mutation, lower, upper, generator)
+    return mutation
+
 def build_genetic_model(inception_input, inception_output, original_image, original_classes,
-        population_size, tournament_size, elitism_count, mutation_rate, mutation_variance, max_change_below, max_change_above):
+        population_size, tournament_size, elitism_count, mutation_rate, mutation_variance, max_change_below, max_change_above, bound_strategy,
+        generator):
     elitism = ElitismLayer(None, elitism_count) if elitism_count > 0 else None
     crossover = CrossoverLayer(None, 
         OnePointCrossover(), 
@@ -100,13 +122,12 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
         population_size - elitism_count)
     first_layer = [crossover, elitism] if elitism is not None else crossover
     mutation = MutationLayer(first_layer, 
-        ClippedUniformIntegerMutation(mutation_rate, mutation_variance, max_change_below, max_change_above),
-        "mutation", True)
+        bound_strategy_from_arg(bound_strategy, UniformIntegerMutation(mutation_rate, mutation_variance), max_change_below, max_change_above, generator))
     return Model(mutation, fitness_change_original_generator(inception_input, inception_output, original_image, original_classes))
 
 
 def run(args, hook=None):
-    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b
+    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget, bound_strategy = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b, args.bs
 
     model = inception_v3.InceptionV3()
     model_input_layer = model.layers[0].input
@@ -127,11 +148,14 @@ def run(args, hook=None):
     predictions = np.argsort(predictions, axis=1)
     original_classes = predictions[0][-classes_to_avoid:]
 
+    population_generator = UniformClippedPopulationGenerator(input_image, max_change, 0, 255)
+
     genetic_alg = build_genetic_model(model_input_layer, model_output_layer, input_image, original_classes, 
-        population_size, tournament_size, elitism, mutation_rate, mutation_variance, max_change_below, max_change_above)
+        population_size, tournament_size, elitism, mutation_rate, mutation_variance, max_change_below, max_change_above, bound_strategy,
+        population_generator)
     
     
-    initial_population = UniformClippedPopulationGenerator(input_image, max_change, 0, 255).generate(population_size)
+    initial_population = population_generator.generate(population_size)
     subscribers = [Printer() if hook is None else ServerHook(hook, model)]
     if log_file is not None:
         subscribers.append(Logger(log_file, model, classes_to_avoid=classes_to_avoid, max_change=max_change))

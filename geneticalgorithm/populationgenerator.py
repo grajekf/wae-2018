@@ -12,7 +12,6 @@ class UniformClippedPopulationGenerator(PopulationGenerator):
         self.min_value = min_value
         self.max_value = max_value
     def generate(self, size):
-        print(self.original.shape)
         return [np.clip(self.original + np.random.randint(-self.max_change, self.max_change, size=self.original.shape), self.min_value, self.max_value)
             for i in range(size)]
 
