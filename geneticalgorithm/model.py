@@ -24,7 +24,7 @@ class Model():
         population = initial_population
         fitness = self.fitness_function(population)
         try:
-            while not stopping_criterion(population, fitness, current_uses=self.current_uses):
+            while not stopping_criterion(population, fitness, current_uses=self.current_uses, generation=self.generation):
                 self.output_layer.resetcache()
                 population = self.output_layer.forward(population, fitness)
                 fitness = self.fitness_function(population)

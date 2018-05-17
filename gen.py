@@ -16,7 +16,7 @@ from geneticalgorithm.mutationfunctions import UniformIntegerMutation
 from geneticalgorithm.elitism import ElitismLayer
 from geneticalgorithm.selectionfunctions import TournamentSelection
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
-from geneticalgorithm.stopconditions import budget_stopcondition_generator
+from geneticalgorithm.stopconditions import budget_stopcondition_generator, patience_stopcondition_generator
 from geneticalgorithm.onefifthmutationadjuster import OneFifthMutationAdjuster
 from mysubcribers import Printer, ServerHook, Logger
 from geneticalgorithm.bounded.conservatism import Conservatism
@@ -36,6 +36,7 @@ ELITISM = 0
 CLASSESTOAVOID = 5
 FINISH = 0.7
 ALPHA = 1
+PATIENCE = 100
 BOUNDSTRATEGY = "projection"
 OUTPUTFILE = "hacked-image.png"
 
@@ -59,13 +60,16 @@ def stopping_when_more_likely_by(stopping_value):
         return max(fitness) >= 1 + stopping_value
     return stopping
 
-def stop_condition(finish, budget):
+def stop_condition(finish, budget, patience):
     value_condition = stopping_when_more_likely_by(finish)
+    patience_condition = patience_stopcondition_generator(patience)
     if budget is None:
-        return value_condition
+        def inner_no_budget(population, fitness, **kwargs):
+            return value_condition(population, fitness, **kwargs) or patience_condition(population, fitness, **kwargs)
+        return inner_no_budget
     budget_condition = budget_stopcondition_generator(budget)
     def inner(population, fitness, **kwargs):
-        return budget_condition(population, fitness, **kwargs) or value_condition(population, fitness, **kwargs)
+        return budget_condition(population, fitness, **kwargs) or value_condition(population, fitness, **kwargs) or patience_condition(population, fitness, **kwargs)
     return inner
     
 
@@ -92,6 +96,7 @@ def args(p=None):
     parser.add_argument('-b', metavar='BUDGET', help='Number of fitness function evaluations the algorithm can use', type=int)
     parser.add_argument('-bs', metavar='BOUNDSTRATEGY', default=BOUNDSTRATEGY, help='Strategy to use for chromosome outside of allowed range', 
                         type=str)
+    parser.add_argument('-pat', metavar='PATIENCE', default=PATIENCE, help='How many generations to go without improvement', type=int)
     # parser.add_argument('-a', metavar='ALPHA', default=ALPHA, help='Factor used to adjust mutation variance according to the one fifth rule',
     #                     type=float)
 
@@ -127,7 +132,7 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
 
 
 def run(args, hook=None):
-    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget, bound_strategy = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b, args.bs
+    inp, out, population_size, mutation_rate, mutation_variance, max_change, classes_to_avoid, elitism, finish, log_file, tournament_size, budget, bound_strategy, patience = args.input, args.o, args.p, args.mr, args.mv, args.c, args.ca, args.e, args.f, args.l, args.ts, args.b, args.bs, args.pat
 
     model = inception_v3.InceptionV3()
     model_input_layer = model.layers[0].input
@@ -160,7 +165,7 @@ def run(args, hook=None):
     if log_file is not None:
         subscribers.append(Logger(log_file, model, classes_to_avoid=classes_to_avoid, max_change=max_change))
 
-    population, fitness = genetic_alg.run(initial_population, stop_condition(finish, budget), subscribers)  
+    population, fitness = genetic_alg.run(initial_population, stop_condition(finish, budget, patience), subscribers)  
 
     hacked_image = max(list(zip(population, fitness)), key=lambda p: p[1])[0]
     # Save the hacked image!
