@@ -28,7 +28,7 @@ from geneticalgorithm.bounded.reflection import Reflection
 
 POPULATIONSIZE = 100
 MUTATIONRATE = 0.05
-MUTATIONVARIANCE = 6
+MUTATIONVARIANCE = 5
 TOURNAMENTSIZE = 4
 MAXCHANGE = 15
 CHANGEEXPONENT = 0
@@ -120,10 +120,10 @@ def build_genetic_model(inception_input, inception_output, original_image, origi
         OnePointCrossover(), 
         TournamentSelection(tournament_size),
         population_size - elitism_count)
-    first_layer = [crossover, elitism] if elitism is not None else crossover
+    first_layer = crossover
     mutation = MutationLayer(first_layer, 
         bound_strategy_from_arg(bound_strategy, UniformIntegerMutation(mutation_rate, mutation_variance), max_change_below, max_change_above, generator))
-    return Model(mutation, fitness_change_original_generator(inception_input, inception_output, original_image, original_classes))
+    return Model(mutation if elitism is None else [mutation, elitism], fitness_change_original_generator(inception_input, inception_output, original_image, original_classes))
 
 
 def run(args, hook=None):
