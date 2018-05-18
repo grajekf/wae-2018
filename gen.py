@@ -26,7 +26,7 @@ from geneticalgorithm.bounded.reinitialization import Reinitialization
 from geneticalgorithm.bounded.reflection import Reflection
 
 
-POPULATIONSIZE = 100
+POPULATIONSIZE = 70
 MUTATIONRATE = 0.05
 MUTATIONVARIANCE = 5
 TOURNAMENTSIZE = 4
