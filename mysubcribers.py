@@ -10,7 +10,7 @@ from sklearn.preprocessing import normalize
 class Printer(Subscriber):
     def notify(self, generation, population, fitness, **kwargs):
         print(
-            f"Generation: {generation}, Min fitness: {np.min(fitness)}, Avg fitness: {np.average(fitness)}, Max fitness: {np.max(fitness)}, Fitness function uses: {kwargs['current_fitness_uses']}")
+            f"Generation: %d, Min fitness: %f, Avg fitness: %f, Max fitness: %f, Fitness function uses: %d" % (generation, np.min(fitness), np.average(fitness), np.max(fitness), kwargs['current_fitness_uses']))
 
 class Logger(Subscriber):
     def __init__(self, path, model, **kwargs):
