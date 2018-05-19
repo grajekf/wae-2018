@@ -8,7 +8,8 @@ class UniformIntegerMutation(MutationFunctor):
         self.mutation_variance = mutation_variance
 
     def mutate(self, original):
-        return original + np.random.randint(-self.mutation_variance, self.mutation_variance, size=original.shape) * np.random.choice([0, 1], size=original.shape, p=[1 - self.mutation_rate, self.mutation_rate])
+        noise = (np.random.random(size=original.shape) < self.mutation_rate) * np.random.randint(-self.mutation_variance, self.mutation_variance, size=original.shape)
+        return original +  noise
 
     def getparameters(self):
         return {
