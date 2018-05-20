@@ -2,7 +2,7 @@
 
 FILENAME="${1%%.*}"
 
-for BS in projection reflection
+for TS in 2 4 10 15 30
 do
     for I in {1..10}
     do
