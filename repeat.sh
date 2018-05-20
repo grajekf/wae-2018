@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-for P in 70 100
+FILENAME="${1%%.*}"
+
+for P in 10 20 40 70 100
 do
     for I in {1..10}
     do
-        ./gen.py kawa.png -p $P -l results/kawa_p${P}_${I}.csv -pat 1000 -b 50000
+        ./gen.py $1 -p $P -l results/${FILENAME}_p${P}_${I}.csv -pat 1000 -b 50000
     done
 done

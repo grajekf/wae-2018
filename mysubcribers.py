@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from utils import to_model_image, predict_classes
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import normalize
+# from sklearn.decomposition import PCA
+# from sklearn.preprocessing import normalize
 
 
 class Printer(Subscriber):
