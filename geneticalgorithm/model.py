@@ -34,5 +34,7 @@ class Model():
                     parameter_adjuster.adjust(self.output_layer, population, fitness, self.generation, fitness_function=self.fitness_function)
                 self.generation = self.generation + 1
         except KeyboardInterrupt:
-            pass  
+            pass
+        for s in subscribers:
+            s.on_finish()
         return population, fitness
