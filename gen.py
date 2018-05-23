@@ -19,7 +19,7 @@ from geneticalgorithm.selectionfunctions import TournamentSelection
 from geneticalgorithm.populationgenerator import UniformClippedPopulationGenerator
 from geneticalgorithm.stopconditions import budget_stopcondition_generator, patience_stopcondition_generator
 from geneticalgorithm.onefifthmutationadjuster import OneFifthMutationAdjuster
-from mysubcribers import Printer, ServerHook, Logger, PopulationLogger
+from mysubcribers import Printer, ServerHook, Logger, PopulationVisualizer
 from geneticalgorithm.bounded.conservatism import Conservatism
 from geneticalgorithm.bounded.projection import Projection
 from geneticalgorithm.bounded.resampling import Resampling
@@ -166,7 +166,7 @@ def run(args, hook=None):
     
     initial_population = population_generator.generate(population_size)
     subscribers = [Printer() if hook is None else ServerHook(hook, model)]
-    subscribers.append(PopulationLogger('population.csv'))
+    #subscribers.append(PopulationVisualizer('population.bin'))
     if log_file is not None:
         subscribers.append(Logger(log_file, model, classes_to_avoid=classes_to_avoid, max_change=max_change))
 

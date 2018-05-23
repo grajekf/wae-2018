@@ -15,10 +15,10 @@ class Printer(Subscriber):
     def notify(self, generation, population, fitness, **kwargs):
         print(
             "Generation: %d, Min fitness: %f, Avg fitness: %f, Max fitness: %f, Fitness function uses: %d" % (
-            generation, np.min(fitness), np.average(fitness), np.max(fitness), kwargs['current_fitness_uses']))
+                generation, np.min(fitness), np.average(fitness), np.max(fitness), kwargs['current_fitness_uses']))
 
 
-class PopulationLogger(Subscriber):
+class PopulationVisualizer(Subscriber):
 
     def __init__(self, path):
         self.path = path
@@ -29,12 +29,11 @@ class PopulationLogger(Subscriber):
         self.points += list(self.pca.fit_transform(list(map(lambda x: x.flatten(), list(population)))))
 
     def on_finish(self):
-        with open('population.bin', 'wb') as f:
+        with open(self.path, 'wb') as f:
             pickle.dump(self.points, f)
         plt.scatter(list(map(lambda x: x[0], self.points)), list(map(lambda x: x[1], self.points)), s=1)
         plt.plot()
         plt.show()
-
 
 class Logger(Subscriber):
     def __init__(self, path, model, **kwargs):
