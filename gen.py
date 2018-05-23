@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from heapq import nlargest
+import cProfile
 
 import numpy as np
 from PIL import Image
@@ -149,9 +150,12 @@ def run(args, hook=None):
     input_image_extended = np.expand_dims(img_scaled, axis=0)
 
     predictions = model.predict(input_image_extended)
+    predicted_classes = inception_v3.decode_predictions(predictions)
+    print(predicted_classes)
 
     predictions = np.argsort(predictions, axis=1)
     original_classes = predictions[0][-classes_to_avoid:]
+
 
     population_generator = UniformClippedPopulationGenerator(input_image, max_change, 0, 255)
 
@@ -166,6 +170,7 @@ def run(args, hook=None):
         subscribers.append(Logger(log_file, model, classes_to_avoid=classes_to_avoid, max_change=max_change))
 
     population, fitness = genetic_alg.run(initial_population, stop_condition(finish, budget, patience), subscribers)  
+    # cProfile.runctx("genetic_alg.run(initial_population, stop_condition(finish, budget, patience), subscribers)", globals(), locals())
 
     hacked_image = max(list(zip(population, fitness)), key=lambda p: p[1])[0]
     # Save the hacked image!
