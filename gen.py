@@ -150,9 +150,12 @@ def run(args, hook=None):
     input_image_extended = np.expand_dims(img_scaled, axis=0)
 
     predictions = model.predict(input_image_extended)
+    predicted_classes = inception_v3.decode_predictions(predictions)
+    print(predicted_classes)
 
     predictions = np.argsort(predictions, axis=1)
     original_classes = predictions[0][-classes_to_avoid:]
+
 
     population_generator = UniformClippedPopulationGenerator(input_image, max_change, 0, 255)
 
