@@ -2,7 +2,7 @@
 
 FILENAME="${1%%.*}"
 
-for MR in 0.001 0.01 0.05 0.1 0.3 0.7
+for MR in 0.001 0.01 0.05 0.1 0.3
 do
     for I in {1..10}
     do
