@@ -23,12 +23,12 @@ df_std = gb.std()
 print(df_mean)
 print(df_std)
 
-matplotlib.rcParams.update({'font.size': 16})
-plt.bar(np.arange(len(df_mean)), df_mean)
-for i, v in enumerate(df_mean):
-    plt.text(i, v + 0.25, " %.2f" % v, ha='center') 
-plt.xticks(np.arange(len(df_mean)), df_mean.index)
-plt.xlabel("Rozmiar turnieju")
-plt.ylabel("Średnia wariancja populacji na końcu")
-plt.show()
+# matplotlib.rcParams.update({'font.size': 16})
+# plt.bar(np.arange(len(df_mean)), df_mean)
+# for i, v in enumerate(df_mean):
+#     plt.text(i, v + 0.25, " %.2f" % v, ha='center') 
+# plt.xticks(np.arange(len(df_mean)), df_mean.index)
+# plt.xlabel("Rozmiar turnieju")
+# plt.ylabel("Średnia wariancja populacji na końcu")
+# plt.show()
 
