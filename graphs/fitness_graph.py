@@ -19,7 +19,7 @@ def main():
         fitness[row[GENERATION_COL]] = {'best': best, 'average': avg, 'median': median, 'worst': worst}
     handles = [plt.plot(fitness.keys(), [v[name] for v in fitness.values()], label=name) for name in
                ['best', 'average', 'median', 'worst']]
-    plt.legend(handles=[h[0] for h in handles], loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.legend(handles=[h[0] for h in handles])#, loc='center left', bbox_to_anchor=(1, 0.5))
     plt.xlabel('Generacja')
     plt.ylabel('Wartość funkcji celu')
     plt.show()
